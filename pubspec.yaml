@@ -1,0 +1,28 @@
+name: movies
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  auto_size_text: ^3.0.0
+  shimmer: ^3.0.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  google_fonts:
+  provider:
+  shared_preferences:
+  font_awesome_flutter: 
+
+flutter:
+  assets:
+    - assets/
+  uses-material-design: true
