@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   auto_size_text: ^3.0.0
   shimmer: ^3.0.0
+  full_screen_image: ^2.0.0
+  fullscreen_image_viewer: ^0.0.6
 
 
 dev_dependencies:

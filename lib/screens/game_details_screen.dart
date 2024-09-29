@@ -1,14 +1,21 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:fullscreen_image_viewer/fullscreen_image_viewer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:movies/models/detailed_game_model.dart';
 import 'package:movies/models/game_model.dart';
 import 'package:movies/screens/games_genre_screen.dart';
+import 'package:movies/widgets/game_card.dart';
 
 class GameDetailsScreen extends StatefulWidget {
-  const GameDetailsScreen({super.key, required this.id});
+  GameDetailsScreen({super.key, required this.id});
   final int id;
+
+  bool isShowMore = false;
+  String buttontext = "Show more";
 
   @override
   State<GameDetailsScreen> createState() => _GameDetailsScreenState();
@@ -27,37 +34,44 @@ class _GameDetailsScreenState extends State<GameDetailsScreen> {
         await http.get(Uri.parse("https://www.freetogame.com/api/game?id=$id"));
     if (res.statusCode == 200) {
       gamedetailes = DetailedGameModel.fromJson(jsonDecode(res.body));
+      print("before ");
       print(gamedetailes!.id);
+      fetchGamesByPlatform(gamedetailes!.genre);
+      print("after ");
       setState(() {
         isLoading = false;
       });
     }
   }
 
-  fetchGamesByPlatform() async {
+  fetchGamesByPlatform(String genre) async {
     setState(() {
       isLoading2 = true;
     });
-    final res = await http.get(Uri.parse(
-        "https://www.freetogame.com/api/games?category=${gamedetailes!.genre}"));
+    print("before ");
+    final res = await http
+        .get(Uri.parse("https://www.freetogame.com/api/games?category=$genre"));
+    print("after ");
     if (res.statusCode == 200) {
       games.clear();
       var data = jsonDecode(res.body);
       games = List<GameModel>.from(data.map((game) => GameModel.fromJson(game)))
           .toList();
 
+      fetchGamesByPlatform(gamedetailes!.genre);
+
       print(" the is the lesnth of the games ${games.length}");
       setState(() {
         isLoading2 = false;
       });
+    } else {
+      print(res.statusCode);
     }
   }
 
   @override
   void initState() {
     fetchGame(widget.id);
-    fetchGamesByPlatform();
-
     super.initState();
   }
 
@@ -134,17 +148,42 @@ class _GameDetailsScreenState extends State<GameDetailsScreen> {
                             itemCount: gamedetailes!.screenshots.length,
                             itemBuilder: (context, index) {
                               return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: Image.network(
-                                      gamedetailes!.screenshots[index].image,
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                    return loadingProgress != null
-                                        ? const Center(
-                                            child: CircularProgressIndicator())
-                                        : child;
-                                  }));
+                                padding: const EdgeInsets.all(10.0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    FullscreenImageViewer.open(
+                                      context: context,
+                                      child: Hero(
+                                        tag: "hero",
+                                        child: Image.network(
+                                            gamedetailes!
+                                                .screenshots[index].image,
+                                            loadingBuilder: (context, child,
+                                                loadingProgress) {
+                                          return loadingProgress != null
+                                              ? const Center(
+                                                  child:
+                                                      CircularProgressIndicator())
+                                              : child;
+                                        }),
+                                      ),
+                                    );
+                                  },
+                                  child: Hero(
+                                    tag: "hero",
+                                    child: Image.network(
+                                        gamedetailes!.screenshots[index].image,
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                      return loadingProgress != null
+                                          ? const Center(
+                                              child:
+                                                  CircularProgressIndicator())
+                                          : child;
+                                    }),
+                                  ),
+                                ),
+                              );
                             }),
                       ),
                       Row(
@@ -194,6 +233,22 @@ class _GameDetailsScreenState extends State<GameDetailsScreen> {
                       ),
                       Text(
                         gamedetailes!.description,
+                        maxLines: widget.isShowMore ? 50 : 3,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          widget.isShowMore = !widget.isShowMore;
+                          if (widget.buttontext == "Show more") {
+                            widget.buttontext = "Show less";
+                          } else {
+                            widget.buttontext = "Show more";
+                          }
+                          setState(() {});
+                        },
+                        child: Text(
+                          widget.buttontext,
+                          style: TextStyle(color: Colors.blue),
+                        ),
                       ),
                       const SizedBox(
                         height: 40,
@@ -230,17 +285,18 @@ class _GameDetailsScreenState extends State<GameDetailsScreen> {
                         ],
                       ),
                       SizedBox(
-                        height: 100,
+                        height: 400,
                         child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount: 20,
+                            itemCount: min(20, games.length),
                             itemBuilder: (context, index) {
+                              print(games[index].title);
                               return AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 300),
                                   child: Padding(
                                       padding: const EdgeInsets.all(8),
-                                      child: games.isEmpty
-                                          ? const CircularProgressIndicator()
+                                      child: isLoading
+                                          ? CircularProgressIndicator()
                                           : GestureDetector(
                                               onTap: () {
                                                 Navigator.push(
@@ -251,16 +307,15 @@ class _GameDetailsScreenState extends State<GameDetailsScreen> {
                                                                 id: games[index]
                                                                     .id)));
                                               },
-                                              child: Image.network(
-                                                games[index].thumbnail,
-                                                loadingBuilder: (context, child,
-                                                    loadingProgress) {
-                                                  return loadingProgress != null
-                                                      ? const Center(
-                                                          child:
-                                                              CircularProgressIndicator())
-                                                      : child;
-                                                },
+                                              child: SizedBox(
+                                                height: 300,
+                                                width: 300,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      10.0),
+                                                  child: GameCard(
+                                                      gamemodel: games[index]),
+                                                ),
                                               ),
                                             )));
                             }),
