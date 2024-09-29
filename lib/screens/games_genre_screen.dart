@@ -7,8 +7,7 @@ import 'package:movies/widgets/game_card.dart';
 import 'package:shimmer/shimmer.dart';
 
 class GamesGenreScreen extends StatefulWidget {
-  const GamesGenreScreen(
-      {super.key ,required this.value});
+  const GamesGenreScreen({super.key, required this.value});
   final String value;
 
   @override
@@ -44,7 +43,7 @@ class _GamesGenreScreenState extends State<GamesGenreScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.fillterKey + ":" + widget.value),
+        title: Text("genre" ":" + widget.value),
         centerTitle: true,
       ),
       body: Padding(
