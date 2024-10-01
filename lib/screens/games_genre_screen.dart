@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
 import 'package:flutter/material.dart';
-import 'package:movies/models/game_model.dart';
+import 'package:movies/providers/dark_mode_provider.dart';
+import 'package:movies/providers/games_provider.dart';
 import 'package:movies/widgets/game_card.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 class GamesGenreScreen extends StatefulWidget {
@@ -15,63 +14,59 @@ class GamesGenreScreen extends StatefulWidget {
 }
 
 class _GamesGenreScreenState extends State<GamesGenreScreen> {
-  bool isLoading = true;
-  List<GameModel> games = [];
-  fetchGamesByPlatform(String genre) async {
-    setState(() {
-      isLoading = true;
-    });
-    final res = await http
-        .get(Uri.parse("https://www.freetogame.com/api/games?category=$genre"));
-    if (res.statusCode == 200) {
-      games.clear();
-      var data = jsonDecode(res.body);
-      games = List<GameModel>.from(data.map((game) => GameModel.fromJson(game)))
-          .toList();
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
   void initState() {
-    fetchGamesByPlatform(widget.value);
+    Provider.of<GamesProvider>(context, listen: false).sameGenreGames;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("genre" ":" + widget.value),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-            itemCount: isLoading ? 6 : games.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.7,
-              crossAxisCount: 2,
-            ),
-            itemBuilder: (context, index) => AnimatedSwitcher(
-                duration: Duration(milliseconds: 300),
-                child: isLoading
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Shimmer.fromColors(
-                            baseColor: Colors.black12,
-                            highlightColor: Colors.white38,
-                            child: Container(
-                              color: Colors.white,
-                              height: double.infinity,
-                              width: double.infinity,
-                            )),
-                      )
-                    : GameCard(gamemodel: games[index]))),
-      ),
-    );
+    return Consumer2<GamesProvider, DarkModeProvider>(
+        builder: (context, gamesConsumer, darkModeConsumer, _) {
+      return Scaffold(
+        backgroundColor: darkModeConsumer.isDark ? Colors.black : Colors.white,
+        appBar: AppBar(
+          backgroundColor:
+              darkModeConsumer.isDark ? Colors.black : Colors.white,
+          title: Text("genre" ":" + widget.value,
+          style: TextStyle(
+            color:darkModeConsumer.isDark
+          ?Colors.white
+          :Colors.black
+          ),
+          ),
+          centerTitle: true,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: GridView.builder(
+              itemCount: gamesConsumer.isLoading
+                  ? 6
+                  : gamesConsumer.sameGenreGames.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 0.7,
+                crossAxisCount: 2,
+              ),
+              itemBuilder: (context, index) => AnimatedSwitcher(
+                  duration: Duration(milliseconds: 300),
+                  child: gamesConsumer.isLoading
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Shimmer.fromColors(
+                              baseColor: Colors.black12,
+                              highlightColor: Colors.white38,
+                              child: Container(
+                                color: Colors.white,
+                                height: double.infinity,
+                                width: double.infinity,
+                              )),
+                        )
+                      : GameCard(
+                          gamemodel: gamesConsumer.sameGenreGames[index]))),
+        ),
+      );
+    });
   }
 }
