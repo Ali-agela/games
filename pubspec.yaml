@@ -14,6 +14,7 @@ dependencies:
   full_screen_image: ^2.0.0
   fullscreen_image_viewer: ^0.0.6
   url_launcher: ^6.3.0
+  get: ^4.7.2
 
 
 dev_dependencies:

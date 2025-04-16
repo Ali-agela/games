@@ -1,15 +1,14 @@
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:movies/providers/dark_mode_provider.dart';
 import 'package:movies/providers/games_provider.dart';
 import 'package:movies/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  Bool ali = Bool(
-    
-  );
+  Bool ali = Bool();
   print(ali.toString);
   runApp(MultiProvider(providers: [
     ListenableProvider<GamesProvider>(create: (_) => GamesProvider()),
@@ -23,7 +22,7 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return const GetMaterialApp(
       title: "Gamefy",
       home: SplashScreen(),
     );
